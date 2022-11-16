@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kidcools.testboot.mapper.AtlasMapper">
+    
+    <resultMap type="com.kidcools.testboot.entity.Atlas" id="AtlasResult">
+        <result property="id"    column="id"    />
+        <result property="atlasId"    column="atlas_id"    />
+        <result property="title"    column="title"    />
+        <result property="total"    column="total"    />
+        <result property="collectTime"    column="collect_time"    />
+    </resultMap>
+
+    <sql id="selectAtlasVo">
+        select id, atlas_id, title, total, collect_time from atlas
+    </sql>
+
+    <select id="selectAtlasList" parameterType="com.kidcools.testboot.entity.Atlas" resultMap="AtlasResult">
+        <include refid="selectAtlasVo"/>
+        <where>  
+            <if test="atlasId != null "> and atlas_id = #{atlasId}</if>
+            <if test="title != null  and title != ''"> and title = #{title}</if>
+            <if test="total != null "> and total = #{total}</if>
+            <if test="collectTime != null "> and collect_time = #{collectTime}</if>
+        </where>
+    </select>
+    
+    <select id="selectAtlasById" parameterType="Long" resultMap="AtlasResult">
+        <include refid="selectAtlasVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertAtlas" parameterType="com.kidcools.testboot.entity.Atlas" useGeneratedKeys="true" keyProperty="id">
+        insert into atlas
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="atlasId != null">atlas_id,</if>
+            <if test="title != null and title != ''">title,</if>
+            <if test="total != null">total,</if>
+            <if test="collectTime != null">collect_time,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="atlasId != null">#{atlasId},</if>
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="total != null">#{total},</if>
+            <if test="collectTime != null">#{collectTime},</if>
+         </trim>
+    </insert>
+
+    <update id="updateAtlas" parameterType="com.kidcools.testboot.entity.Atlas">
+        update atlas
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="atlasId != null">atlas_id = #{atlasId},</if>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="total != null">total = #{total},</if>
+            <if test="collectTime != null">collect_time = #{collectTime},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteAtlasById" parameterType="Long">
+        delete from atlas where id = #{id}
+    </delete>
+
+    <delete id="deleteAtlasByIds" parameterType="String">
+        delete from atlas where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>

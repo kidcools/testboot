@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kidcools.testboot.mapper.C91videoMapper">
+    
+    <resultMap type="com.kidcools.testboot.entity.C91video" id="C91videoResult">
+        <result property="id"    column="id"    />
+        <result property="title"    column="title"    />
+        <result property="uploadDate"    column="upload_date"    />
+        <result property="duration"    column="duration"    />
+        <result property="durationStr"    column="duration_str"    />
+        <result property="poster"    column="poster"    />
+        <result property="videoId"    column="videoId"    />
+        <result property="previewUrl"    column="preview_url"    />
+        <result property="views"    column="views"    />
+        <result property="upper"    column="upper"    />
+        <result property="desc"    column="desc"    />
+        <result property="createdAt"    column="created_at"    />
+        <result property="updatedAt"    column="updated_at"    />
+    </resultMap>
+
+    <sql id="selectC91videoVo">
+        select id, title, upload_date, duration, duration_str, poster, videoId, preview_url, views, upper, desc, created_at, updated_at from c91video
+    </sql>
+
+    <select id="selectC91videoList" parameterType="com.kidcools.testboot.entity.C91video" resultMap="C91videoResult">
+        <include refid="selectC91videoVo"/>
+        <where>  
+            <if test="title != null  and title != ''"> and title like concat('%', #{title}, '%')</if>
+            <if test="params.beginUploadDate != null and params.beginUploadDate != '' and params.endUploadDate != null and params.endUploadDate != ''"> and upload_date between #{params.beginUploadDate} and #{params.endUploadDate}</if>
+            <if test="params.beginDuration != null and params.beginDuration != '' and params.endDuration != null and params.endDuration != ''"> and duration between #{params.beginDuration} and #{params.endDuration}</if>
+            <if test="durationStr != null  and durationStr != ''"> and duration_str = #{durationStr}</if>
+            <if test="poster != null  and poster != ''"> and poster = #{poster}</if>
+            <if test="videoId != null "> and videoId = #{videoId}</if>
+            <if test="previewUrl != null  and previewUrl != ''"> and preview_url = #{previewUrl}</if>
+            <if test="views != null "> and views = #{views}</if>
+            <if test="upper != null  and upper != ''"> and upper = #{upper}</if>
+            <if test="desc != null  and desc != ''"> and desc = #{desc}</if>
+            <if test="params.beginCreatedAt != null and params.beginCreatedAt != '' and params.endCreatedAt != null and params.endCreatedAt != ''"> and created_at between #{params.beginCreatedAt} and #{params.endCreatedAt}</if>
+            <if test="params.beginUpdatedAt != null and params.beginUpdatedAt != '' and params.endUpdatedAt != null and params.endUpdatedAt != ''"> and updated_at between #{params.beginUpdatedAt} and #{params.endUpdatedAt}</if>
+        </where>
+    </select>
+    
+    <select id="selectC91videoById" parameterType="Long" resultMap="C91videoResult">
+        <include refid="selectC91videoVo"/>
+        where id = #{id}
+    </select>
+        
+    <insert id="insertC91video" parameterType="com.kidcools.testboot.entity.C91video" useGeneratedKeys="true" keyProperty="id">
+        insert into c91video
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">title,</if>
+            <if test="uploadDate != null">upload_date,</if>
+            <if test="duration != null">duration,</if>
+            <if test="durationStr != null and durationStr != ''">duration_str,</if>
+            <if test="poster != null and poster != ''">poster,</if>
+            <if test="videoId != null">videoId,</if>
+            <if test="previewUrl != null and previewUrl != ''">preview_url,</if>
+            <if test="views != null">views,</if>
+            <if test="upper != null and upper != ''">upper,</if>
+            <if test="desc != null and desc != ''">desc,</if>
+            <if test="createdAt != null">created_at,</if>
+            <if test="updatedAt != null">updated_at,</if>
+         </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="title != null and title != ''">#{title},</if>
+            <if test="uploadDate != null">#{uploadDate},</if>
+            <if test="duration != null">#{duration},</if>
+            <if test="durationStr != null and durationStr != ''">#{durationStr},</if>
+            <if test="poster != null and poster != ''">#{poster},</if>
+            <if test="videoId != null">#{videoId},</if>
+            <if test="previewUrl != null and previewUrl != ''">#{previewUrl},</if>
+            <if test="views != null">#{views},</if>
+            <if test="upper != null and upper != ''">#{upper},</if>
+            <if test="desc != null and desc != ''">#{desc},</if>
+            <if test="createdAt != null">#{createdAt},</if>
+            <if test="updatedAt != null">#{updatedAt},</if>
+         </trim>
+    </insert>
+
+    <update id="updateC91video" parameterType="com.kidcools.testboot.entity.C91video">
+        update c91video
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="uploadDate != null">upload_date = #{uploadDate},</if>
+            <if test="duration != null">duration = #{duration},</if>
+            <if test="durationStr != null and durationStr != ''">duration_str = #{durationStr},</if>
+            <if test="poster != null and poster != ''">poster = #{poster},</if>
+            <if test="videoId != null">videoId = #{videoId},</if>
+            <if test="previewUrl != null and previewUrl != ''">preview_url = #{previewUrl},</if>
+            <if test="views != null">views = #{views},</if>
+            <if test="upper != null and upper != ''">upper = #{upper},</if>
+            <if test="desc != null and desc != ''">desc = #{desc},</if>
+            <if test="createdAt != null">created_at = #{createdAt},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="deleteC91videoById" parameterType="Long">
+        delete from c91video where id = #{id}
+    </delete>
+
+    <delete id="deleteC91videoByIds" parameterType="String">
+        delete from c91video where id in 
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper>
