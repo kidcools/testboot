@@ -11,6 +11,7 @@ import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kidcools.testboot.Constant;
+import com.kidcools.testboot.dto.TestDto;
 import com.kidcools.testboot.entity.*;
 import com.kidcools.testboot.service.IXvideoService;
 import com.kidcools.testboot.utils.XvideosUtils;
@@ -24,11 +25,16 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.LongStream;
 
 @Slf4j
 @Service
@@ -53,7 +59,7 @@ public class XvideoServiceImpl implements IXvideoService {
                             boolean ischannel = null != ele.attr("data-is-channel") && ele.attr("data-is-channel").equals("1");
                             Long videoId = Long.parseLong(ele.attr("data-id"));
                             String posterVideoUrl = getPosterVideoUrl(imageUrl);
-                            String detailUrl = Constant.XvideosConstant.XVIDEOS_HOST_URL + ele.getElementsByTag("a").get(0).attr("href");
+                            String detailUrl = Constant.XvideosConstant.XVIDEOS_HOST_URL + ele.getElementsByTag("a").get(0).attr("href").replaceAll("THUMBNUM","");
                             String title = ele.getElementsByClass("thumb-under").get(0).getElementsByTag("a").get(0).attr("title");
                             String duration = ele.getElementsByClass("thumb-under").get(0).getElementsByTag("a").get(0).getElementsByTag("span").get(0).text();
                             Elements qulityspan = ele.getElementsByTag("a").get(0).getElementsByTag("span");
@@ -98,6 +104,57 @@ public class XvideoServiceImpl implements IXvideoService {
             String channelInfojs  = doc.getElementsByTag("head").get(0).getElementsByTag("script").get(0).html();
             channelInfojs = channelInfojs.substring(channelInfojs.indexOf("{\""),channelInfojs.lastIndexOf(";"));
             JSONObject jsonObject = JSONUtil.parseObj(channelInfojs).getJSONObject("dyn").getJSONObject("subs_users");
+            if (CollectionUtil.isNotEmpty(doc.getElementsByClass(className))) {
+                Elements eles = doc.getElementsByClass(className);
+                System.out.println(eles.size());
+                for (Element ele : eles) {
+                    Element left = ele.getElementsByClass("thumb").get(0);
+                    String html = left.getElementsByTag("script").get(0).html();
+                    html = html.replace("document.write(xv.thumbs.replaceThumbUrl('", "");
+                    html = html.substring(0, html.length() - 4);
+                    String imageUrl = Jsoup.parse(html).getElementsByTag("img").attr("src").replace("thumbs169ll/", "thumbs169lll/");
+                    ;
+                    imageUrl = imageUrl.replace("THUMBNUM", "16");
+                    String posterVideoUrl = getPosterVideoUrl(imageUrl);
+                    String title = left.getElementsByClass("profile-name").get(0).text();
+                    String channelDetailUrl = left.getElementsByTag("a").get(0).attr("href");
+                    String videoNum = ele.getElementsByClass("thumb-under").get(0).getElementsByClass("with-sub").get(0).text();
+                    if(channelDetailUrl.endsWith("/straight")){
+                        channelDetailUrl =  channelDetailUrl.replace("/straight","");
+                    }
+                    String endfix = channelDetailUrl.substring(channelDetailUrl.lastIndexOf("/")+1,channelDetailUrl.length());
+                    String channelId = jsonObject.getJSONObject(endfix).getStr("id");
+                    String subNum = jsonObject.getJSONObject(endfix).getStr("subs_s");
+                    items.add(new ChannelListItem(channelId,title, imageUrl, posterVideoUrl, channelDetailUrl, "", subNum, videoNum));
+                }
+            } else {
+                return items;
+            }
+            long diff = System.currentTimeMillis() - start;
+            log.info("diff:{}", diff);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return items;
+    }
+
+    /**
+     * 获得pornstar list
+     * @param url
+     * @return
+     */
+    @Override
+    public List<ChannelListItem> getPornStarList(String url) {
+        List<ChannelListItem> items = new ArrayList<>();
+        try {
+            long start0 = System.currentTimeMillis();
+            Document doc = Jsoup.connect(url).headers(Constant.XvideosConstant.getHeaders()).get();
+            long start = System.currentTimeMillis();
+            log.info("http duration:{}", start - start0);
+            String className = "thumb-block thumb-block-profile  tb_full_init";
+            String channelInfojs  = doc.getElementsByTag("head").get(0).getElementsByTag("script").get(0).html();
+            channelInfojs = channelInfojs.substring(channelInfojs.indexOf("{\""),channelInfojs.lastIndexOf(";"));
+            JSONObject jsonObject  = JSONUtil.parseObj(channelInfojs).getJSONObject("dyn").getJSONObject("subs_users");
             if (CollectionUtil.isNotEmpty(doc.getElementsByClass(className))) {
                 Elements eles = doc.getElementsByClass(className);
                 System.out.println(eles.size());
@@ -317,7 +374,7 @@ public class XvideoServiceImpl implements IXvideoService {
         return quality;
     }
     public static void main(String[] args) {
-        XvideoServiceImpl xvideoService = new XvideoServiceImpl();
+        // XvideoServiceImpl xvideoService = new XvideoServiceImpl();
         //xvideoService.getMainPageVideoInfos("https://www.xvideos.com/best/2022-10/0").forEach((videoItem -> System.out.println(videoItem)));
         //VideoDeatil videoDetail = xvideoService.getVideoDetail("https://www.xvideos.com/video28735831/big_ass_latina_claudia_bavel");
         //System.out.println(videoDetail);
@@ -326,7 +383,23 @@ public class XvideoServiceImpl implements IXvideoService {
 //        List<ChannelListItem> channelList = xvideoService.getChannelList("https://www.xvideos.com/channels-index/10");
 //        channelList.forEach(item->{System.out.println(item);});
         //String url = XvideosUtils.getChannelDetailVideoListUrl(0, "comments", "/channels/hentai-cosplay-1");
-        List<VideoItem> channelDetailShortVideoList = xvideoService.getChannelDetailShortVideoList("https://www.xvideos.com/quickies-api/profilevideos/horizontal/straight/C/11311304/0");
-        channelDetailShortVideoList.forEach(item->{System.out.println(item);});
+//        List<VideoItem> channelDetailShortVideoList = xvideoService.getChannelDetailShortVideoList("https://www.xvideos.com/quickies-api/profilevideos/horizontal/straight/C/11311304/0");
+//        channelDetailShortVideoList.forEach(item->{System.out.println(item);});
+//        List<ChannelListItem> channelList = xvideoService.getChannelList("https://www.xvideos.com/channels-index");
+//        channelList.forEach(item->{
+//            System.out.println(item);
+//        });
+//        BigDecimal total = new BigDecimal("0.00");
+//        List<TestDto> items = new ArrayList<>();
+//        items.add(new TestDto("milestar",new BigDecimal("10.008")));
+//        items.add(new TestDto("milestar1",new BigDecimal("100.008")));
+//        double sum = items.stream().flatMapToDouble(item -> {
+//            return DoubleStream.of(item.getMoney().doubleValue());
+//        }).sum();
+//        System.out.println(new BigDecimal(sum).setScale(2, RoundingMode.DOWN));
+        String  a = "1,2,3,4";
+        List<String> strings = Arrays.asList(a.split(",").clone());
+        List<Long> collect = strings.stream().map(item -> new Long(item)).collect(Collectors.toList());
+        System.out.println(collect);
     }
 }

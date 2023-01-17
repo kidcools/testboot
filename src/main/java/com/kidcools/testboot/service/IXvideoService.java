@@ -5,6 +5,7 @@ import com.kidcools.testboot.entity.ChannelListItem;
 import com.kidcools.testboot.entity.VideoDeatil;
 import com.kidcools.testboot.entity.VideoItem;
 
+import java.nio.channels.Channel;
 import java.util.List;
 
 public interface IXvideoService {
@@ -15,6 +16,7 @@ public interface IXvideoService {
      */
     List<VideoItem>  getMainPageVideoInfos(String url);
     List<ChannelListItem> getChannelList(String url);
+    List<ChannelListItem>  getPornStarList(String url);
     List<VideoItem> getChannelDetailVideoList(String url);
     List<VideoItem> getChannelDetailShortVideoList(String url);
     List<VideoItem> getSearchVideoList(String url);
